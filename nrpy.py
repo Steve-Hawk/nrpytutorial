@@ -1,5 +1,4 @@
 import sys
-# just some try
 # Step 0: Check Python version. NRPy+ is untested below Python 2.7-ish, but is compatible with 2.7+ and 3+
 PYTHONVERSION3 = False
 if sys.version_info[0]==2:
