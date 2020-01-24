@@ -39,7 +39,9 @@ def initialize_Cparam(input):
 #    defined according to namedtuple('param', 'type module name defaultval'),
 #    where in the case of `input`, defaultval need not be set,
 #    return the list index of `params` that matches `input`.
+#    从已有的参数列表中遍历复合的情况，并返回在参数列表中的下标。
 # On error returns -1
+# parameter input only support single namedtuple
 def get_params_idx(input,Cparam=False):
     # inspired by: https://stackoverflow.com/questions/2917372/how-to-search-a-list-of-tuples-in-python:
     if Cparam==False:
@@ -104,10 +106,11 @@ def set_parval_from_str(string,value):
 #   appropriate for the context.
 import re
 def set_paramsvals_value(line,filename="", FindMainModuleMode=False):
+    # 虽然没有体现filename的使用，但是实际在读入文件内容的时候需要指明文件名同时
     MainModuleFound = True
     if FindMainModuleMode == True:
         MainModuleFound = False
-    # First remove carriage return and leading whitespace:
+    # 移除字符串头尾处的空格
     stripped_line_of_text = line.strip()
     # Only process lines that do NOT start with a hash
     if not stripped_line_of_text.startswith("#"):
@@ -116,6 +119,7 @@ def set_paramsvals_value(line,filename="", FindMainModuleMode=False):
         # Thus, using the delimiters "::", "=", and "#",
         # with the regex split command, the first three
         # items in single_param_def will be [module, variablename, value]
+        # 得到上述形式的列表
         single_param_def = re.split('::|=|#', stripped_line_of_text)
 
         # First verify that single_param_def has at least 3 parts:
@@ -129,6 +133,7 @@ def set_paramsvals_value(line,filename="", FindMainModuleMode=False):
             sys.exit(1)
 
         # Next remove all leading/trailing whitespace from single_param_def
+        # 再移除通过分割字符列表中可能存在的空格
         for i in range(len(single_param_def)):
             single_param_def[i] = single_param_def[i].strip()
 
