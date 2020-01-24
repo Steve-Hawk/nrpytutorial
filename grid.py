@@ -11,7 +11,7 @@ from collections import namedtuple # Standard Python `collections` module: defin
 # Initialize globals related to the grid
 glb_gridfcs_list = []
 glb_gridfc  = namedtuple('gridfunction', 'gftype name rank DIM')
-
+# gridfunction gftype either "EVOL" or "AUX"
 thismodule = __name__
 par.initialize_param(par.glb_param("char", thismodule, "GridFuncMemAccess", "SENRlike"))
 par.initialize_param(par.glb_param("char", thismodule, "MemAllocStyle","210"))
@@ -28,6 +28,7 @@ dxx   = par.Cparameters("REAL",thismodule,[   "dxx0",   "dxx1",   "dxx2"],0.1)
 invdx = par.Cparameters("REAL",thismodule,[ "invdx0", "invdx1", "invdx2"],1.0)
 
 def variable_type(var):
+    # 判断变量的类型
     var_is_gf = False
     for gf in range(len(glb_gridfcs_list)):
         if str(var) == glb_gridfcs_list[gf].name:
@@ -50,11 +51,13 @@ def variable_type(var):
         return "gridfunction"
 
 def find_gftype(varname):
+    # 判断gridfunction变量的类型
     for gf in glb_gridfcs_list:
         if gf.name == varname:
             return gf.gftype
     
 def gfaccess(gfarrayname = "", varname = "", ijklstring = ""):
+    # gfarrayname只是一个array的总名字，array由ijklstring决定
     found_registered_gf = False
     for gf in glb_gridfcs_list:
         if gf.name == varname:
