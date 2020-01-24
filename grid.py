@@ -58,6 +58,8 @@ def find_gftype(varname):
     
 def gfaccess(gfarrayname = "", varname = "", ijklstring = ""):
     # gfarrayname只是一个array的总名字，array由ijklstring决定
+    # aux_gfs[IDX4(PHIGF, i0,i1,i2)]
+    # phiGF[CCTK_GFINDEX3D(cctkGH, i0,i1,i2)]
     found_registered_gf = False
     for gf in glb_gridfcs_list:
         if gf.name == varname:
