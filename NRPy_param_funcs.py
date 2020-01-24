@@ -107,6 +107,7 @@ def set_parval_from_str(string,value):
 import re
 def set_paramsvals_value(line,filename="", FindMainModuleMode=False):
     # 虽然没有体现filename的使用，但是实际在读入文件内容的时候需要指明文件名同时
+    # par.set_paramsvals_value(line, sys.argv[1], FindMainModuleMode=True) usage in the nrpy.py file
     MainModuleFound = True
     if FindMainModuleMode == True:
         MainModuleFound = False
