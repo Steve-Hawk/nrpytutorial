@@ -24,6 +24,7 @@ import importlib
 # Initialize the MainModule parameter.
 # This is the ONLY parameter initialized outside of a module!
 MainModule = "scalarwave" # Default. To be overwritten later.
+### 运行python nrpy.py的时候就初始化了一个glb_param列表
 par.initialize_param(par.glb_param("char","NRPy","MainModule",MainModule))
 
 # Step 4: Initialize NRPy+ as desired.
@@ -60,6 +61,7 @@ elif(len(sys.argv) == 2 and sys.argv[1] == "--help"):
 #    *and* parameter settings in parameter file
 elif(len(sys.argv) >= 2):
     # When not in an interactive mode, the NRPy::MainModule parameter must be set,
+    ## 事实上已经初始完成通过上面的命令
     #   either in the param file (preferred!) or as a command line argument.
     with open(sys.argv[1], "r") as file:
         for line in file:
