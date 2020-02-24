@@ -79,6 +79,7 @@ def gfaccess(gfarrayname = "", varname = "", ijklstring = ""):
     DIM = par.parval_from_str("DIM")
     retstring = ""
     if par.parval_from_str("GridFuncMemAccess") == "SENRlike":
+        ### 全局调用修改
         if gfarrayname == "":
             print("Error: GridFuncMemAccess = SENRlike requires gfarrayname be passed to gfaccess()")
             sys.exit(1)
@@ -90,6 +91,7 @@ def gfaccess(gfarrayname = "", varname = "", ijklstring = ""):
         elif gftype == "AUXEVOL":
             gfarrayname = "auxevol_gfs"
         # Return gfarrayname[IDX3(varname,i0)] for DIM=1, gfarrayname[IDX3(varname,i0,i1)] for DIM=2, etc.
+        ### 注意只有在变量是EVOL的情况下才会赋予指定参数下的gfarrayname
         retstring += gfarrayname + "[IDX" + str(DIM+1) + "(" + varname.upper()+"GF" + ", "
     elif par.parval_from_str("GridFuncMemAccess") == "ETK":
         # Return varname[CCTK_GFINDEX3D(i0,i1,i2)] for DIM=3. Error otherwise
@@ -185,7 +187,7 @@ def register_gridfunctions(gf_type,gf_names,rank=0,is_indexed=False,DIM=3):
     # Step 5: Return SymPy object corresponding to symbol or
     #         list of symbols representing gridfunction in
     #         SymPy expression
-    ### 函数最终返回的是一个sympy表达式
+    ### 函数最终返回的是一个sympy表达式，所以遵守基于sympy的那一套操作规范
     OBJ_TMPS = []
     for i in range(len(gf_names)):
         OBJ_TMPS.append(sp.symbols(gf_names[i], real=True))
