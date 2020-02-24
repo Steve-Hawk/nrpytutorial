@@ -157,7 +157,7 @@ def parse_outCparams_string(params):
             else:
                 print("Error: outputC parameter name \""+parnm[i]+"\" unrecognized.")
                 sys.exit(1)
-
+    ### 使用在一开始就定义好的nametuple构建表达式
     return outCparams(preindent,includebraces,declareoutputvars,outCfileaccess,outCverbose,CSE_enable,CSE_varprefix,SIMD_enable,SIMD_const_suffix,SIMD_debug,enable_TYPE)
 
 import sympy as sp
@@ -165,6 +165,7 @@ import sympy as sp
 #        output_varname_str = a single output variable name *or* a list of output
 #                             variable names, one per sympyexpr.
 # Output: C code, as a string.
+### 这里只需要记住一点：sympyexpr对应的只是一个赋值表达式的标记（解除引用后对应的真实输入是值！），所以才会有第二个参数对应，构建对应到C语言中赋值表达式形式
 def outputC(sympyexpr, output_varname_str, filename = "stdout", params = "", prestring = "", poststring = ""):
     outCparams = parse_outCparams_string(params)
     preindent = outCparams.preindent
@@ -346,6 +347,7 @@ def outputC(sympyexpr, output_varname_str, filename = "stdout", params = "", pre
             successstr = "Wrote "
         print(successstr + "to file \"" + filename + "\"")
 
+### 其他定义
 outC_function_prototype_dict = {}
 outC_function_dict           = {}
 
@@ -353,6 +355,7 @@ def Cfunction(desc="",type="void",name=None,params=None,preloop="",body=None,loo
     if name == None or params == None or body == None:
         print("Cfunction() error: strings must be provided for function name, parameters, and body")
         sys.exit(1)
+    ### name作为函数名字，必须要有的如果是为了输出函数定义！
     func_prototype = type+" "+name+"("+params+")"
 
     include_Cparams_str = ""
@@ -364,7 +367,9 @@ def Cfunction(desc="",type="void",name=None,params=None,preloop="",body=None,loo
 
     complete_func  = ""
     if desc != "":
+        ### 输出目标形式的赋值
         complete_func = "/*\n" + desc + "\n */\n"
+        ### 注意这里有关输出格式的严谨性！
     complete_func += func_prototype + " {\n"+include_Cparams_str+preloop+"\n"+lp.simple_loop(loopopts,body)+postloop+"}\n"
 
     return func_prototype+";",complete_func
@@ -375,6 +380,7 @@ def add_to_Cfunction_dict(desc="",type="void",name=None,params=None,preloop="",b
 def outCfunction(outfile="",desc="",type="void",name=None,params=None,preloop="",body=None,loopopts="",postloop="",opts=""):
     ignoreprototype,Cfunc = Cfunction(desc,type,name,params,preloop,body,loopopts,postloop,opts)
     if outfile == "returnstring":
+        ### Zach的Tutorial中只用到了返回值的后面一部分，所以“；”没有体现出来
         return Cfunc
     with open(outfile,"w") as file:
         file.write(Cfunc)
