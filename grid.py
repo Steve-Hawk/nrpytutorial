@@ -11,8 +11,9 @@ from collections import namedtuple # Standard Python `collections` module: defin
 # Initialize globals related to the grid
 glb_gridfcs_list = []
 glb_gridfc  = namedtuple('gridfunction', 'gftype name rank DIM')
-# gridfunction gftype either "EVOL" or "AUX"
+# gridfunction gftype either "EVOL" or "AUX" ## 辅助变量类型或者是随时间演化类型
 thismodule = __name__
+### 所有这些子模块都是用了基于nametuple的定义
 par.initialize_param(par.glb_param("char", thismodule, "GridFuncMemAccess", "SENRlike"))
 par.initialize_param(par.glb_param("char", thismodule, "MemAllocStyle","210"))
 par.initialize_param(par.glb_param("int",  thismodule, "DIM", 3))
@@ -51,15 +52,16 @@ def variable_type(var):
         return "gridfunction"
 
 def find_gftype(varname):
-    # 判断gridfunction变量的类型
+    ### 判断gridfunction变量的类型
     for gf in glb_gridfcs_list:
         if gf.name == varname:
             return gf.gftype
     
 def gfaccess(gfarrayname = "", varname = "", ijklstring = ""):
-    # gfarrayname只是一个array的总名字，array由ijklstring决定
-    # aux_gfs[IDX4(PHIGF, i0,i1,i2)]
-    # phiGF[CCTK_GFINDEX3D(cctkGH, i0,i1,i2)]
+    ### 默认必须给一个gridfunction的名字
+    ### gfarrayname只是一个array的总名字，array由ijklstring决定
+    ## aux_gfs[IDX4(PHIGF, i0,i1,i2)]
+    ### phiGF[CCTK_GFINDEX3D(cctkGH, i0,i1,i2)]
     found_registered_gf = False
     for gf in glb_gridfcs_list:
         if gf.name == varname:
@@ -91,6 +93,7 @@ def gfaccess(gfarrayname = "", varname = "", ijklstring = ""):
         retstring += gfarrayname + "[IDX" + str(DIM+1) + "(" + varname.upper()+"GF" + ", "
     elif par.parval_from_str("GridFuncMemAccess") == "ETK":
         # Return varname[CCTK_GFINDEX3D(i0,i1,i2)] for DIM=3. Error otherwise
+        ### 在EinsteinToolkit框架下，目前只支持3D类型的超曲面上的数值演化过程，似乎与EinsteinToolkit中格点函数的命名方式有出入？
         if DIM != 3:
             print("Error: GridFuncMemAccess = ETK currently requires that gridfunctions be 3D. Can be easily extended.")
             sys.exit(1)
