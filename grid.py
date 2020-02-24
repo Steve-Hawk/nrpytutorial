@@ -160,6 +160,7 @@ def register_gridfunctions(gf_type,gf_names,rank=0,is_indexed=False,DIM=3):
     # Step 2: if the gridfunction is not indexed, then
     #         gf_names == base names. Check that the
     #         gridfunction basenames are valid:
+    ### 这里验证是否有下表
     if is_indexed==False:
         for i in range(len(gf_names)):
             verify_gridfunction_basename_is_valid(gf_names[i])
@@ -184,6 +185,7 @@ def register_gridfunctions(gf_type,gf_names,rank=0,is_indexed=False,DIM=3):
     # Step 5: Return SymPy object corresponding to symbol or
     #         list of symbols representing gridfunction in
     #         SymPy expression
+    ### 函数最终返回的是一个sympy表达式
     OBJ_TMPS = []
     for i in range(len(gf_names)):
         OBJ_TMPS.append(sp.symbols(gf_names[i], real=True))
