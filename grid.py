@@ -182,6 +182,7 @@ def register_gridfunctions(gf_type,gf_names,rank=0,is_indexed=False,DIM=3):
                 print("Error: Tried to register the gridfunction \""+gf_names[i]+"\" twice (ignored type)\n\n")
                 sys.exit(1)
         # If no duplicate found, append to "gridfunctions" list:
+        ### 每一个分量都会被注册为一个相应的格点函数
         glb_gridfcs_list.append(glb_gridfc(gf_type,gf_names[i],rank,DIM))
 
     # Step 5: Return SymPy object corresponding to symbol or

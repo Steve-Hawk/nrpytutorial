@@ -9,10 +9,11 @@ import sys
 
 thismodule = __name__
 par.initialize_param(par.glb_param("char", thismodule, "symmetry_axes",  ""))
-
+### 注意这里的默认参数均为-1
 def zerorank1(DIM=-1):
     if DIM == -1:
         DIM = par.parval_from_str("DIM")
+    ## it will convert Python ints into instances of sympy.Integer, floats into instances of sympy.Float
     return [sp.sympify(0) for i in range(DIM)]
 
 def zerorank2(DIM=-1):
@@ -46,7 +47,7 @@ def apply_symmetry_condition_to_derivatives(IDX_OBJ):
         else:
             print("Error: could not figure out rank for ",IDX_OBJ)
             sys.exit(1)
-
+    ### 支持这样的语法规则！
     def does_IDXOBJ_perform_derivative_across_symmetry_axis(idxobj_str):
         returnval = False
         if "_d" in idxobj_str:
@@ -108,6 +109,7 @@ def register_gridfunctions_for_single_rank1(gf_type,gf_basename, DIM=-1):
     
     # Step 1: Declare a list of SymPy variables, 
     #         where IDX_OBJ_TMP[i] = gf_basename+str(i)
+    ### 在给定的basename的基础上再去添加相应的下标数字
     IDX_OBJ_TMP = declarerank1(gf_basename, DIM)
 
     # Step 2: Register each gridfunction
@@ -115,6 +117,7 @@ def register_gridfunctions_for_single_rank1(gf_type,gf_basename, DIM=-1):
         DIM = par.parval_from_str("DIM")
     gf_list = []
     for i in range(DIM):
+        ### 传入的必须是字符串类型的参数值
         gf_list.append(str(IDX_OBJ_TMP[i]))
     gri.register_gridfunctions(gf_type, gf_list, rank=1, is_indexed=True, DIM=DIM)
 
@@ -124,6 +127,7 @@ def register_gridfunctions_for_single_rank1(gf_type,gf_basename, DIM=-1):
 def declarerank2(objname, symmetry_option, DIM=-1):
     if DIM==-1:
         DIM = par.parval_from_str("DIM")
+    ### 这里看清楚最糊返回的对象是一个列表，并且包含下标上对应的数字内容
     IDX_OBJ_TMP = [[sp.sympify(objname + str(i) + str(j)) for j in range(DIM)] for i in range(DIM)]
     for i in range(DIM):
         for j in range(DIM):
