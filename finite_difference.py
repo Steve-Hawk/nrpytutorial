@@ -9,6 +9,30 @@
 # Author: Zachariah B. Etienne
 #         zachetie **at** gmail **dot* com
 
+## -------- 一些补充记录 --------- ##
+"""(来自于Zach的文档)
+phi, output = gri.register_gridfunctions("AUX",["phi","output"])
+
+# Declare phi_dDD as a rank-2 indexed expression: phi_dDD[i][j] = \partial_i \partial_j phi
+phi_dDD = ixp.declarerank2("phi_dDD","nosym")
+
+# Set output to \partial_0^2 phi
+output = phi_dDD[0][0]
+
+# Output to the screen the core C code for evaluating the finite difference derivative
+fin.FD_outputC("stdout",lhrh(lhs=gri.gfaccess("out_gf","output"),rhs=output))
+### 这里特别提一下有关接口函数FD_outputC的用法：
+## 1.第一个参数指出的输出的方式；
+## 2.第二个参数依赖于一个命名元组对象：
+        1.首先rhs会被拿来分析差分表达式的形式，给出基于stencil形式的差分表达式的具体计算结果（有没有一般性的算法？）
+        2.然后每一个stencil上格点都会被创建一个临时的变量，最后利用这些变量生成完整的表达式（简化处理器的计算量！）
+        3.其次利用lhs中的名字"output"，注意这里的"out_gf"不会在最终的结果上体现出来，其实是在这里才可以真正反映出来为什么会有"lhs -- rhs"这样的命名方式
+"""
+### 一些阅读这段代码的小技巧：
+##      1.跟随变量的名字去溯源（Zach风格的变量名和函数修改经常会出现）
+##      2.找生成代码中注释出现的位置，去找生成这些注释的接口函数的位置在哪里
+## -------- 一些补充记录 --------- ##
+
 from outputC import *            # NRPy+: Core C code output module
 import grid as gri               # NRPy+: Functions having to do with numerical grids
 import sys                       # Standard Python module for multiplatform OS-level functions
@@ -19,9 +43,11 @@ from operator import itemgetter
 import NRPy_param_funcs as par
 modulename = __name__
 # Centered finite difference accuracy order
+### 这里Zach定义的accuracy of finite-difference 指的是齐次高阶项-1
 par.initialize_param(par.glb_param("int", modulename, "FD_CENTDERIVS_ORDER",  4))
+## Kreis-Oliger的特性
 par.initialize_param(par.glb_param("int", modulename, "FD_KO_ORDER__CENTDERIVS_PLUS", 2))
-
+### 高级调用函数接口,含有嵌套函数的定义
 def FD_outputC(filename,sympyexpr_list, params="", upwindcontrolvec=""):
     outCparams = parse_outCparams_string(params)
 
@@ -59,6 +85,7 @@ def FD_outputC(filename,sympyexpr_list, params="", upwindcontrolvec=""):
     #     so we call the list "list_of_deriv_vars"
     list_of_deriv_vars_with_duplicates = []
     for expr in sympyexpr_list:
+        ### 几乎在给出的表达式中的变量都对应到free_symbols
         for var in expr.rhs.free_symbols:
             vartype = gri.variable_type(var)
             if vartype == "other":
@@ -384,7 +411,7 @@ def FD_outputC(filename,sympyexpr_list, params="", upwindcontrolvec=""):
         else:
             TYPE = par.parval_from_str("PRECISION")
             return "const "+ TYPE + " " + varname
-
+    ### 看起来最不起眼的一个函数，但是对于理清楚整个长函数的逻辑架构非常有帮助！
     def varsuffix(idx4):
         if idx4 == [0,0,0,0]:
             return ""
@@ -447,6 +474,7 @@ def FD_outputC(filename,sympyexpr_list, params="", upwindcontrolvec=""):
         lhsvarnames.append(out__type_var(list_of_deriv_vars[i]))
         var = deriv__base_gridfunction_name[i]
         for j in range(len(fdcoeffs[i])):
+            ### 对照着Zach的Tutorials看！
             varname = str(var)+varsuffix(fdstencl[i][j])
             exprs[i] += fdcoeffs[i][j]*sp.sympify(varname)
 
@@ -536,6 +564,7 @@ const REAL_SIMD_ARRAY upwind_Integer_0 = ConstSIMD(tmp_upwind_Integer_0);
 
     # Step 5b.v: Add input RHS & LHS expressions from
     #             sympyexpr_list[]
+    ### 从这里开始转化为完整的C++内容下的表达式形式，即开始调用与lhs有关的内容实现
     Coutput += indent_Ccode("/* \n * NRPy+ Finite Difference Code Generation, Step "
                             + str(NRPy_FD_StepNumber) + " of " + str(NRPy_FD__Number_of_Steps) +
                             ": Evaluate SymPy expressions and write to main memory:\n */\n")
@@ -554,6 +583,7 @@ const REAL_SIMD_ARRAY upwind_Integer_0 = ConstSIMD(tmp_upwind_Integer_0);
     if outCparams.SIMD_enable == "True":
         for i in range(len(sympyexpr_list)):
             write_to_mem_string += "WriteSIMD(&"+sympyexpr_list[i].lhs+", __RHS_exp_"+str(i)+");\n"
+            ### 最后只需要汇总成为一个完整的表达式即可
     Coutput += indent_Ccode(outputC(exprs,lhsvarnames,"returnstring", params = params+",includebraces=False,preindent=0", prestring="",poststring=write_to_mem_string))
     
     # Step 6: Add consistent indentation to the output end brace. 
@@ -644,16 +674,17 @@ const REAL_SIMD_ARRAY upwind_Integer_0 = ConstSIMD(tmp_upwind_Integer_0);
 #  .... row, but with each element e_j -> e_j^(L-1)
 #  A1 is used later to validate the inverted
 #  matrix.
-
+### 核心函数定义
 def compute_fdcoeffs_fdstencl(derivstring,FDORDER=-1):
     # Step 0: Set finite differencing order, stencil size, and up/downwinding
     if FDORDER == -1:
         FDORDER = par.parval_from_str("FD_CENTDERIVS_ORDER")
         if "dKOD" in derivstring:
             FDORDER += par.parval_from_str("FD_KO_ORDER__CENTDERIVS_PLUS")
-
+    ## 联系stencil与差分阶数的定义
     STENCILSIZE = FDORDER+1
     UPDOWNWIND = 0
+    ### 与上面的判断不矛盾，只会出现一种情况，再精细一些？
     if "dupD" in derivstring:
         UPDOWNWIND =  1
     elif "ddnD" in derivstring:
@@ -666,6 +697,7 @@ def compute_fdcoeffs_fdstencl(derivstring,FDORDER=-1):
     for i in range(STENCILSIZE):
         for j in range(STENCILSIZE):
             if i == 0:
+                ## 横向矩阵分布方式
                 M[(i,j)] = 1 # Setting n^0 = 1 for all n, including n=0, because this matches the pattern
             else:
                 dist_from_xeq0_col = j - sp.Rational((STENCILSIZE - 1),2) + UPDOWNWIND
@@ -709,6 +741,7 @@ def compute_fdcoeffs_fdstencl(derivstring,FDORDER=-1):
     #     Set finite difference coefficients
     #     and stencil points corresponding to
     #     each finite difference coefficient.
+    ## 返回的是列表：sympy对象？
     fdcoeffs = []
     fdstencl = []
     if derivtype != "MixedSecondDeriv":
