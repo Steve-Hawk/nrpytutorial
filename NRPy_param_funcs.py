@@ -192,6 +192,7 @@ def Cparameters(type,module,names,defaultvals,assumption="Real"):
     if not isinstance(defaultvals,list):
         for i in range(len(names)):
             defaultval_list.append(defaultvals)
+    ## 注意到这里会对默认值的输入是不是列表做一个判断，在是列表同时维数不相同的基础上报错！
     else:
         # If defaultvals *is* a list, then make sure it has the same number of elements as "names".
         if len(defaultvals) != len(names):
