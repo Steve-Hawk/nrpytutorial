@@ -1,0 +1,22 @@
+typedef struct __paramstruct__ {
+int Nxx0;
+int Nxx1;
+int Nxx2;
+int Nxx_plus_2NGHOSTS0;
+int Nxx_plus_2NGHOSTS1;
+int Nxx_plus_2NGHOSTS2;
+REAL xx0;
+REAL xx1;
+REAL xx2;
+REAL dxx0;
+REAL dxx1;
+REAL dxx2;
+REAL invdx0;
+REAL invdx1;
+REAL invdx2;
+REAL wavespeed;
+REAL time;
+REAL kk0;
+REAL kk1;
+REAL kk2;
+} paramstruct;
