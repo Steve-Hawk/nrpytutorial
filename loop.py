@@ -25,7 +25,7 @@ def loop1D(idxvar="i0",lower="0",upper="Nx0",incr="1",OpenMPpragma="#pragma omp 
     ### 可以控制缩进形式
     loopbody = tabprefix+"for(int "+idxvar+"="+lower+"; "+idxvar+"<"+upper+"; "+idxvar+incrstr+")"
     return OMPheader+loopbody+" {\n", tabprefix+"} // END LOOP: "+loopbody.replace(tabprefix,"")+"\n"
-
+    ### 注意上面最后返回的表达式是元组！后面接着的是循环体内部的语句
 # loop() creates a C code loop, taking as input:
 #    idxvar (string or list of strings): the index variable name or list of names.
 #        In the case that idxvar is a list of N strings, we adopt the formulation:
@@ -50,12 +50,14 @@ def loop1D(idxvar="i0",lower="0",upper="Nx0",incr="1",OpenMPpragma="#pragma omp 
 # #pragma omp parallel for
 # for(int i0=0;i0<N;i0++) {
 #     for(int i1=5;i1<N-5;i1+=5) {
-#         a=-2;
+#         doublw a=-2;
 #         gf[IDX3(GF,i0,i1)]=-2*a;
 #     } // END LOOP: for(int i1=5;i1<N-5;i1+=5)
 # } // END LOOP: for(int i0=0;i0<N;i0++)
+### loopguts 循环体内部的表达式
 def loop(idxvar,lower,upper,incr,OpenMPpragma,tabprefix="",loopguts=""):
     # Step 1: Check and/or clean input. 
+    ### 检测输入参数是否符合要求
     # Step 1a: If only strings are passed, then create lists out of them:
     if (isinstance(idxvar,str) and isinstance(lower,str) and
         isinstance(upper, str) and isinstance(incr, str) and isinstance(OpenMPpragma, str)):

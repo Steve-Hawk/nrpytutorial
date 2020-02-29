@@ -30,7 +30,7 @@ invdx = par.Cparameters("REAL",thismodule,[ "invdx0", "invdx1", "invdx2"],1.0)
 
 def variable_type(var):
     ### 这个函数的好处在后期才可以发现：
-    ##      1.真正区分Cparameters
+    ##      1.真正区分Cparameters和gridfunction（其实NRPy的核心处理对象就是这些）
     ##      2.区分哪些形式的输入字符串是需要微分的形式
     # 判断变量的类型
     var_is_gf = False
@@ -63,8 +63,9 @@ def find_gftype(varname):
 def gfaccess(gfarrayname = "", varname = "", ijklstring = ""):
     ### 默认必须给一个gridfunction的名字
     ### gfarrayname只是一个array的总名字，array由ijklstring决定
-    ## aux_gfs[IDX4(PHIGF, i0,i1,i2)] --- SENR
-    ### phiGF[CCTK_GFINDEX3D(cctkGH, i0,i1,i2)] --- EinsteinToolkit
+    ## 返回以下类似的对象：
+    ##  1.  aux_gfs[IDX4(PHIGF, i0,i1,i2)] --- SENR
+    ### 2.  phiGF[CCTK_GFINDEX3D(cctkGH, i0,i1,i2)] --- EinsteinToolkit
     found_registered_gf = False
     for gf in glb_gridfcs_list:
         if gf.name == varname:
