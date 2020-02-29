@@ -87,8 +87,10 @@ def FD_outputC(filename,sympyexpr_list, params="", upwindcontrolvec=""):
     list_of_deriv_vars_with_duplicates = []
     for expr in sympyexpr_list:
         ### 几乎在给出的表达式中的变量都对应到free_symbols
+        ##      1.结合ScalarWave的那个例子去理解为什么这里要用free_symbols这种东西！
         for var in expr.rhs.free_symbols:
             vartype = gri.variable_type(var)
+            ### 这里有微妙的逻辑判断结构: surprise!
             if vartype == "other":
                 # vartype=="other" should ONLY refer to derivatives, so
                 #    if "_dD" or variants do not appear in a variable classified

@@ -17,7 +17,7 @@ thismodule = __name__
 par.initialize_param(par.glb_param("char", thismodule, "GridFuncMemAccess", "SENRlike"))
 par.initialize_param(par.glb_param("char", thismodule, "MemAllocStyle","210"))
 par.initialize_param(par.glb_param("int",  thismodule, "DIM", 3))
-
+### 利用Cparameters函数返回的是同样参数名的sympy对象，同时注册C参数到列表中
 Nxx = par.Cparameters("int", thismodule,["Nxx0","Nxx1","Nxx2"],[64,32,64]) # Default to 64x32x64 grid
 Nxx_plus_2NGHOSTS = par.Cparameters("int", thismodule,
                       ["Nxx_plus_2NGHOSTS0","Nxx_plus_2NGHOSTS1","Nxx_plus_2NGHOSTS2"],
@@ -29,6 +29,9 @@ dxx   = par.Cparameters("REAL",thismodule,[   "dxx0",   "dxx1",   "dxx2"],0.1)
 invdx = par.Cparameters("REAL",thismodule,[ "invdx0", "invdx1", "invdx2"],1.0)
 
 def variable_type(var):
+    ### 这个函数的好处在后期才可以发现：
+    ##      1.真正区分Cparameters
+    ##      2.区分哪些形式的输入字符串是需要微分的形式
     # 判断变量的类型
     var_is_gf = False
     for gf in range(len(glb_gridfcs_list)):
@@ -60,8 +63,8 @@ def find_gftype(varname):
 def gfaccess(gfarrayname = "", varname = "", ijklstring = ""):
     ### 默认必须给一个gridfunction的名字
     ### gfarrayname只是一个array的总名字，array由ijklstring决定
-    ## aux_gfs[IDX4(PHIGF, i0,i1,i2)]
-    ### phiGF[CCTK_GFINDEX3D(cctkGH, i0,i1,i2)]
+    ## aux_gfs[IDX4(PHIGF, i0,i1,i2)] --- SENR
+    ### phiGF[CCTK_GFINDEX3D(cctkGH, i0,i1,i2)] --- EinsteinToolkit
     found_registered_gf = False
     for gf in glb_gridfcs_list:
         if gf.name == varname:
@@ -147,6 +150,7 @@ def verify_gridfunction_basename_is_valid(gf_basename):
         sys.exit(1)
 
 import sys
+### 在输入参数为列表的情况下，同样放回sympy对象的列表
 def register_gridfunctions(gf_type,gf_names,rank=0,is_indexed=False,DIM=3):
     # Step 0: Sanity check
     if (rank > 0 and is_indexed == False) or (rank == 0 and is_indexed == True):
@@ -162,7 +166,7 @@ def register_gridfunctions(gf_type,gf_names,rank=0,is_indexed=False,DIM=3):
     # Step 2: if the gridfunction is not indexed, then
     #         gf_names == base names. Check that the
     #         gridfunction basenames are valid:
-    ### 这里验证是否有下表
+    ### 这里验证是否有下标
     if is_indexed==False:
         for i in range(len(gf_names)):
             verify_gridfunction_basename_is_valid(gf_names[i])

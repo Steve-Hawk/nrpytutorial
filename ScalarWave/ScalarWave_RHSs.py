@@ -66,7 +66,7 @@ def ScalarWave_RHSs():
     #         in them, so the finite difference module can parse the
     #         variable name properly.
     uu_dDD = ixp.declarerank2("uu_dDD","sym01")
-
+    ### uu_dDD是一个满足前后指标对称性质的sympy列表
     # Step 4: Specify RHSs as global variables,
     #         to enable access outside this
     #         function (e.g., for C code output)
@@ -84,3 +84,4 @@ def ScalarWave_RHSs():
     # fin.FD_outputC("stdout",
     #                [lhrh(lhs=gri.gfaccess("out_gfs","UU_rhs"),rhs=uu_rhs),
     #                 lhrh(lhs=gri.gfaccess("out_gfs","VV_rhs"),rhs=vv_rhs)])
+    ### 真正困难实现的部分
