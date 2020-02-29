@@ -90,7 +90,7 @@ def ccode_postproc(string):
         string2 = re.sub(r'([0-9.]+)L/([0-9.]+)L', '(\\1 / \\2)', string); string = string2
 
     return string
-
+### 最后返回的是nametuple对象
 def parse_outCparams_string(params):
     # Default values:
     preindent = ""
@@ -215,10 +215,11 @@ def outputC(sympyexpr, output_varname_str, filename = "stdout", params = "", pre
         output_varname_str = output_varname_strtmp
         sympyexprtmp = [sympyexpr]
         sympyexpr = sympyexprtmp
-
+    ### 列表的长度必须一致
 
     # Step 3: If outCparams.verbose = True, then output the original SymPy
     #         expression(s) in code comments prior to actual C code
+    ## 基本就是默认的形式
     if outCparams.outCverbose == "True":
         commentblock += preindent+"/*\n"+preindent+" *  Original SymPy expression"
         if len(output_varname_str)>1:
@@ -359,6 +360,7 @@ def Cfunction(desc="",type="void",name=None,params=None,preloop="",body=None,loo
     func_prototype = type+" "+name+"("+params+")"
 
     include_Cparams_str = ""
+    ### "opts"选项的重要性
     if not "DisableCparameters" in opts:
         if "EnableSIMD" in loopopts:
             include_Cparams_str = "#include \"set_Cparameters-SIMD.h\"\n"

@@ -3,11 +3,12 @@
 
 # Author: Zachariah B. Etienne
 #         zachetie **at** gmail **dot* com
-
+### 非常实用的一个loop结构代码的生成器（可能用Julia实现更好？）
 import sys                         # Standard Python modules for multiplatform OS-level functions
-
+### loop1D作为核心函数被调用
 # loop1D() is just a special case of loop(), and in fact is called by loop().
 #   For documentation on the inputs, see loop()'s documentation below.
+### 结合OpenMP的指令
 def loop1D(idxvar="i0",lower="0",upper="Nx0",incr="1",OpenMPpragma="#pragma omp parallel for",tabprefix=""):
     if not (isinstance(idxvar, str) and isinstance(lower, str) and
             isinstance(upper, str) and isinstance(incr, str) and isinstance(OpenMPpragma, str)):
@@ -16,9 +17,12 @@ def loop1D(idxvar="i0",lower="0",upper="Nx0",incr="1",OpenMPpragma="#pragma omp 
     OMPheader = ""
     if OpenMPpragma != "":
         OMPheader = OpenMPpragma + "\n"
+    ### 增量表达式形式
     incrstr = "++"
+    ### 自定义增量行为
     if incr != "1":
         incrstr = "+="+incr
+    ### 可以控制缩进形式
     loopbody = tabprefix+"for(int "+idxvar+"="+lower+"; "+idxvar+"<"+upper+"; "+idxvar+incrstr+")"
     return OMPheader+loopbody+" {\n", tabprefix+"} // END LOOP: "+loopbody.replace(tabprefix,"")+"\n"
 

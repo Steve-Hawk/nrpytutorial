@@ -182,6 +182,7 @@ def set_paramsvals_value(line,filename="", FindMainModuleMode=False):
                     sys.exit(1)
                 glb_paramsvals_list[idx] = single_param_def[2]
 ### 一个type & module支持多个names & defaultvals,另外就是初始化glb_Cparam这个列表并且返回基于sympy的符号变量
+##  返回对象是sympy支持类型
 def Cparameters(type,module,names,defaultvals,assumption="Real"):
     output = []
     # if names is not a list, make it a list, to
