@@ -26,6 +26,7 @@ fin.FD_outputC("stdout",lhrh(lhs=gri.gfaccess("out_gf","output"),rhs=output))
 ## 2.第二个参数依赖于一个命名元组对象：（可以是一个列表，外部的封装是很完整的？）
         1.首先rhs会被拿来分析差分表达式的形式，给出基于stencil形式的差分表达式的具体计算结果（有没有一般性的算法？）
             a.这里rhs是一个可能带有dDD这种形式的表示
+            b.也可以输出一个没有导数的表达式形式：例如ScalarWave的初始条件
         2.然后每一个stencil上格点都会被创建一个临时的变量，最后利用这些变量生成完整的表达式（简化处理器的计算量！）
         3.其次利用lhs中的名字"output"，注意这里的"out_gf"不会在最终的结果上体现出来，其实是在这里才可以真正反映出来为什么会有"lhs -- rhs"这样的命名方式
 """
@@ -49,6 +50,7 @@ par.initialize_param(par.glb_param("int", modulename, "FD_CENTDERIVS_ORDER",  4)
 ## Kreis-Oliger的特性
 par.initialize_param(par.glb_param("int", modulename, "FD_KO_ORDER__CENTDERIVS_PLUS", 2))
 ### 高级调用函数接口,含有嵌套函数的定义
+## 读下面这个函数，想一下初始条件是如何读出来的？
 def FD_outputC(filename,sympyexpr_list, params="", upwindcontrolvec=""):
     outCparams = parse_outCparams_string(params)
 
@@ -107,6 +109,7 @@ def FD_outputC(filename,sympyexpr_list, params="", upwindcontrolvec=""):
                     print(str(var)+" = register_gridfunctions...() (in ixp/grid) if \""+str(var)+"\" is a gridfunction, or")
                     print(str(var)+" = Cparameters() (in par) otherwise (e.g., if it is a free parameter set at C runtime).")
                     sys.exit(1)
+                ## 将其中的导数形式的free_symbols单独弄出来
                 list_of_deriv_vars_with_duplicates.append(var)
 #            elif vartype == "gridfunction":
 #                list_of_deriv_vars_with_duplicates.append(var)
@@ -279,7 +282,7 @@ def FD_outputC(filename,sympyexpr_list, params="", upwindcontrolvec=""):
                                                                               str(fdstencl[j][k][1]) + "," + \
                                                                               str(fdstencl[j][k][2]) + "," + \
                                                                               str(fdstencl[j][k][3]))
-
+    ### 这里解决表达式中不含导数的情况
     # Step 4b: "Zeroth derivative" case:
     #     If gridfunction appears in expression not
     #     as derivative (i.e., by itself), it must
@@ -288,6 +291,7 @@ def FD_outputC(filename,sympyexpr_list, params="", upwindcontrolvec=""):
         for var in sympyexpr_list[expr].rhs.free_symbols:
             vartype = gri.variable_type(var)
             if vartype == "gridfunction":
+                ## 仔细
                 for i in range(len(gri.glb_gridfcs_list)):
                     gfname = gri.glb_gridfcs_list[i].name
                     if gfname == str(var):
@@ -530,6 +534,7 @@ def FD_outputC(filename,sympyexpr_list, params="", upwindcontrolvec=""):
         NRPy_FD_StepNumber = NRPy_FD_StepNumber + 1
         default_CSE_varprefix = outCparams.CSE_varprefix
         # Prefix chosen CSE variables with "FD", for the finite difference coefficients:
+        ### 这里解决的纯格点函数的表示问题
         Coutput += indent_Ccode(outputC(exprs,lhsvarnames,"returnstring",params=params + ",CSE_varprefix="+default_CSE_varprefix+"FD,includebraces=False,SIMD_const_suffix=_FDcoeff",
                                         prestring=read_from_memory_Ccode))
 
@@ -575,6 +580,7 @@ const REAL_SIMD_ARRAY upwind_Integer_0 = ConstSIMD(tmp_upwind_Integer_0);
     lhsvarnames = []
     for i in range(len(sympyexpr_list)):
         exprs.append(sympyexpr_list[i].rhs)
+        ### 到这里才可以看到如何处理最普通的sympy类型的表达式
         if outCparams.SIMD_enable == "True":
             lhsvarnames.append("const REAL_SIMD_ARRAY __RHS_exp_"+str(i))
         else:
@@ -587,6 +593,9 @@ const REAL_SIMD_ARRAY upwind_Integer_0 = ConstSIMD(tmp_upwind_Integer_0);
         for i in range(len(sympyexpr_list)):
             write_to_mem_string += "WriteSIMD(&"+sympyexpr_list[i].lhs+", __RHS_exp_"+str(i)+");\n"
             ### 最后只需要汇总成为一个完整的表达式即可
+            ##  1.体现出抽闲赋值的意义
+            #        a) exprs 从前面所有过程得到的表达式
+            #        b) lhsvarnames 输出等式左边的表达形式
     Coutput += indent_Ccode(outputC(exprs,lhsvarnames,"returnstring", params = params+",includebraces=False,preindent=0", prestring="",poststring=write_to_mem_string))
     
     # Step 6: Add consistent indentation to the output end brace. 
